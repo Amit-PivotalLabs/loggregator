@@ -8,7 +8,7 @@ import (
 	"github.com/cloudfoundry/gosteno"
 )
 
-type AgentListener interface {
+type Listener interface {
 	Start()
 	Stop()
 }
@@ -22,7 +22,7 @@ type agentListener struct {
 	sync.RWMutex
 }
 
-func NewAgentListener(host string, givenLogger *gosteno.Logger, name string) (AgentListener, <-chan []byte) {
+func NewAgentListener(host string, givenLogger *gosteno.Logger, name string) (Listener, <-chan []byte) {
 	byteChan := make(chan []byte, 1024)
 	listener := &agentListener{
 		Logger:      givenLogger,

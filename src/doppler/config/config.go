@@ -12,7 +12,7 @@ import (
 const HeartbeatInterval = 10 * time.Second
 
 type TLSListenerConfig struct{
-	Enable bool
+	Port uint32
 	crtFile string
 	keyFile string
 	InsecureSkipVerify bool

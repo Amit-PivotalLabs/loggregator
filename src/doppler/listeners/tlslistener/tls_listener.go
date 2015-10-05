@@ -20,7 +20,7 @@ type TLSListener struct {
 	lock 		 sync.Mutex
 }
 
-func New(address string, config tls.Config, envelopeChan chan *events.Envelope, logger *gosteno.Logger) *TLSListener {
+func New(address string, config tls.Config, envelopeChan chan *events.Envelope, logger *gosteno.Logger) Listener {
 	return &TLSListener{
 		address:      address,
 		envelopeChan: envelopeChan,

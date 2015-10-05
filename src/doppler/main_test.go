@@ -44,6 +44,7 @@ var _ = Describe("Main", func() {
 				Expect(config.OutgoingPort).To(Equal(uint32(8080)))
 				Expect(config.MessageDrainBufferSize).To(Equal(uint(100)))
 				Expect(config.MonitorIntervalSeconds).To(BeEquivalentTo(60))
+				Expect(config.TLSListenerConfig).To(BeNil())
 			})
 		})
 
@@ -64,7 +65,6 @@ var _ = Describe("Main", func() {
 				Expect(config.BlackListIps[1].End).To(Equal("127.0.1.15"))
 				Expect(config.MonitorIntervalSeconds).To(BeEquivalentTo(1))
 				Expect(config.TLSListenerConfig).ToNot(BeNil())
-				Expect(config.TLSListenerConfig.Enable).To(BeTrue())
 				Expect(config.TLSListenerConfig.InsecureSkipVerify).To(BeTrue())
 			})
 

@@ -23,6 +23,8 @@ import (
 	"github.com/cloudfoundry/loggregatorlib/store/cache"
 	"github.com/cloudfoundry/sonde-go/events"
 	"github.com/cloudfoundry/storeadapter"
+	"doppler/listeners/tlslistener"
+	"crypto/tls"
 )
 
 type Doppler struct {
@@ -30,7 +32,8 @@ type Doppler struct {
 	appStoreWatcher *store.AppServiceStoreWatcher
 
 	errChan           chan error
-	dropsondeListener agentlistener.AgentListener
+	dropsondeUDPListener agentlistener.Listener
+	dropsondeTLSListener agentlistener.Listener
 	sinkManager       *sinkmanager.SinkManager
 	messageRouter     *sinkserver.MessageRouter
 	websocketServer   *websocketserver.WebsocketServer
@@ -57,7 +60,18 @@ func New(host string, config *config.Config, logger *gosteno.Logger, storeAdapte
 	appStoreCache := cache.NewAppServiceCache()
 	appStoreWatcher, newAppServiceChan, deletedAppServiceChan := store.NewAppServiceStoreWatcher(storeAdapter, appStoreCache)
 
-	dropsondeListener, dropsondeBytesChan := agentlistener.NewAgentListener(fmt.Sprintf("%s:%d", host, config.DropsondeIncomingMessagesPort), logger, "dropsondeListener")
+	var dropsondeUDPListener agentlistener.Listener
+	var dropsondeTLSListener agentlistener.Listener
+	var dropsondeBytesChan <-chan []byte
+	listenerEnvelopeChan := make(chan *events.Envelope)
+	if config.TLSListenerConfig != nil {
+		tlsConfig := tls.Config{
+			InsecureSkipVerify: config.TLSListenerConfig.InsecureSkipVerify,
+		}
+		dropsondeTLSListener = tlslistener.New(fmt.Sprintf("%s:%d", host, config.TLSListenerConfig.Port), tlsConfig, listenerEnvelopeChan, logger)
+	}
+
+	dropsondeUDPListener, dropsondeBytesChan = agentlistener.NewAgentListener(fmt.Sprintf("%s:%d", host, config.DropsondeIncomingMessagesPort), logger, "dropsondeListener")
 
 	signatureVerifier := signature.NewVerifier(logger, config.SharedSecret)
 
@@ -71,7 +85,8 @@ func New(host string, config *config.Config, logger *gosteno.Logger, storeAdapte
 
 	return &Doppler{
 		Logger:                          logger,
-		dropsondeListener:               dropsondeListener,
+		dropsondeUDPListener:            dropsondeUDPListener,
+		dropsondeTLSListener:            dropsondeTLSListener,
 		sinkManager:                     sinkManager,
 		messageRouter:                   sinkserver.NewMessageRouter(sinkManager, logger),
 		websocketServer:                 websocketserver.New(fmt.Sprintf("%s:%d", host, config.OutgoingPort), sinkManager, keepAliveInterval, config.MessageDrainBufferSize, dropsondeOrigin, logger),
@@ -81,7 +96,7 @@ func New(host string, config *config.Config, logger *gosteno.Logger, storeAdapte
 		storeAdapter:                    storeAdapter,
 		dropsondeBytesChan:              dropsondeBytesChan,
 		dropsondeUnmarshallerCollection: unmarshallerCollection,
-		envelopeChan:                    make(chan *events.Envelope),
+		envelopeChan:                    listenerEnvelopeChan,
 		wrappedEnvelopeChan:             make(chan *events.Envelope),
 		signatureVerifier:               signatureVerifier,
 		dropsondeVerifiedBytesChan:      make(chan []byte),
@@ -101,8 +116,16 @@ func (doppler *Doppler) Start() {
 
 	go func() {
 		defer doppler.wg.Done()
-		doppler.dropsondeListener.Start()
+		doppler.dropsondeUDPListener.Start()
 	}()
+
+	if doppler.dropsondeTLSListener != nil {
+		doppler.wg.Add(1)
+		go func() {
+			defer doppler.wg.Done()
+			doppler.dropsondeTLSListener.Start()
+		}()
+	}
 
 	doppler.dropsondeUnmarshallerCollection.Run(doppler.dropsondeVerifiedBytesChan, doppler.envelopeChan, &doppler.wg)
 

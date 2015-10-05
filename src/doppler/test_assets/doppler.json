@@ -15,7 +15,7 @@
     "SinkInactivityTimeoutSeconds": 120,
     "MonitorIntervalSeconds": 1,
     "TLSListenerConfig": {
-        "Enable": true,
-        "InsecureSkipVerify": true
+        "InsecureSkipVerify": true,
+        "Port": 8766
     }
 }
