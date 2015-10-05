@@ -11,6 +11,13 @@ import (
 
 const HeartbeatInterval = 10 * time.Second
 
+type TLSListenerConfig struct{
+	Enable bool
+	crtFile string
+	keyFile string
+	InsecureSkipVerify bool
+}
+
 type Config struct {
 	cfcomponent.Config
 	EtcdUrls                      []string
@@ -33,6 +40,7 @@ type Config struct {
 	MetronAddress                 string
 	MonitorIntervalSeconds        uint
 	SinkDialTimeoutSeconds        int
+	TLSListenerConfig			  *TLSListenerConfig
 }
 
 func (c *Config) Validate(logger *gosteno.Logger) (err error) {

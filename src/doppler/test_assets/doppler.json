@@ -13,5 +13,9 @@
     ],
     "ContainerMetricTTLSeconds": 120,
     "SinkInactivityTimeoutSeconds": 120,
-    "MonitorIntervalSeconds": 1
+    "MonitorIntervalSeconds": 1,
+    "TLSListenerConfig": {
+        "Enable": true,
+        "InsecureSkipVerify": true
+    }
 }

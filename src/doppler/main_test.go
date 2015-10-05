@@ -63,6 +63,9 @@ var _ = Describe("Main", func() {
 				Expect(config.BlackListIps[1].Start).To(Equal("127.0.1.12"))
 				Expect(config.BlackListIps[1].End).To(Equal("127.0.1.15"))
 				Expect(config.MonitorIntervalSeconds).To(BeEquivalentTo(1))
+				Expect(config.TLSListenerConfig).ToNot(BeNil())
+				Expect(config.TLSListenerConfig.Enable).To(BeTrue())
+				Expect(config.TLSListenerConfig.InsecureSkipVerify).To(BeTrue())
 			})
 
 			It("sets up logger", func() {
