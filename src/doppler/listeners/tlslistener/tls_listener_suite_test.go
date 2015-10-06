@@ -32,7 +32,7 @@ var _ = BeforeSuite(func() {
 		panic(err)
 	}
 
-	config = tls.Config{
+	config = &tls.Config{
 		InsecureSkipVerify:     true,
 		Certificates:           []tls.Certificate{cert},
 		SessionTicketsDisabled: true,

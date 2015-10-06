@@ -6,6 +6,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	"crypto/tls"
+	"doppler/listeners/agentlistener"
 	"doppler/listeners/tlslistener"
 	"encoding/gob"
 	"fmt"
@@ -25,7 +26,7 @@ var _ = Describe("Tcplistener", func() {
 
 	Context("dropsonde metric emission", func() {
 		var envelopeChan chan *events.Envelope
-		var tlsListener *tlslistener.TLSListener
+		var tlsListener agentlistener.Listener
 
 		BeforeEach(func() {
 			envelopeChan = make(chan *events.Envelope)
@@ -75,7 +76,7 @@ var _ = Describe("Tcplistener", func() {
 
 	Context("Start Stop", func() {
 		var envelopeChan chan *events.Envelope
-		var tlsListener *tlslistener.TLSListener
+		var tlsListener agentlistener.Listener
 
 		BeforeEach(func() {
 			envelopeChan = make(chan *events.Envelope)

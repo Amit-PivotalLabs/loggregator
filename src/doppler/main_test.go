@@ -44,8 +44,21 @@ var _ = Describe("Main", func() {
 				Expect(config.OutgoingPort).To(Equal(uint32(8080)))
 				Expect(config.MessageDrainBufferSize).To(Equal(uint(100)))
 				Expect(config.MonitorIntervalSeconds).To(BeEquivalentTo(60))
+				Expect(config.EnableTLSTransport).To(BeFalse())
 				Expect(config.TLSListenerConfig).To(BeNil())
 			})
+		})
+
+		Context("With EnableTLSTransport", func() {
+			It("generates the cert for the tls config", func() {
+				configFile = "./test_assets/doppler.json"
+
+				config, _ := main.ParseConfig(&logLevel, &configFile, &logFilePath)
+
+				Expect(config.EnableTLSTransport).To(BeTrue())
+				Expect(config.TLSListenerConfig.Cert.Certificate).ToNot(HaveLen(0))
+			})
+
 		})
 
 		Context("with full config", func() {

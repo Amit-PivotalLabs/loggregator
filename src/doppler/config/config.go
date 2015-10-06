@@ -5,16 +5,18 @@ import (
 	"errors"
 	"time"
 
+	"crypto/tls"
 	"github.com/cloudfoundry/gosteno"
 	"github.com/cloudfoundry/loggregatorlib/cfcomponent"
 )
 
 const HeartbeatInterval = 10 * time.Second
 
-type TLSListenerConfig struct{
-	Port uint32
-	crtFile string
-	keyFile string
+type TLSListenerConfig struct {
+	Port               uint32
+	CrtFile            string
+	KeyFile            string
+	Cert               tls.Certificate
 	InsecureSkipVerify bool
 }
 
@@ -40,7 +42,8 @@ type Config struct {
 	MetronAddress                 string
 	MonitorIntervalSeconds        uint
 	SinkDialTimeoutSeconds        int
-	TLSListenerConfig			  *TLSListenerConfig
+	EnableTLSTransport            bool
+	TLSListenerConfig             *TLSListenerConfig
 }
 
 func (c *Config) Validate(logger *gosteno.Logger) (err error) {

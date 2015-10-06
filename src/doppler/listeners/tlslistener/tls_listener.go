@@ -2,6 +2,7 @@ package tlslistener
 
 import (
 	"crypto/tls"
+	"doppler/listeners/agentlistener"
 	"encoding/gob"
 	"github.com/cloudfoundry/gosteno"
 	"github.com/cloudfoundry/sonde-go/events"
@@ -13,14 +14,14 @@ type TLSListener struct {
 	address      string
 	envelopeChan chan *events.Envelope
 	logger       *gosteno.Logger
-	config       tls.Config
+	config       *tls.Config
 	listener     net.Listener
 	connections  []net.Conn
 	wg           sync.WaitGroup
-	lock 		 sync.Mutex
+	lock         sync.Mutex
 }
 
-func New(address string, config tls.Config, envelopeChan chan *events.Envelope, logger *gosteno.Logger) Listener {
+func New(address string, config *tls.Config, envelopeChan chan *events.Envelope, logger *gosteno.Logger) agentlistener.Listener {
 	return &TLSListener{
 		address:      address,
 		envelopeChan: envelopeChan,
@@ -31,7 +32,7 @@ func New(address string, config tls.Config, envelopeChan chan *events.Envelope, 
 
 func (t *TLSListener) Start() {
 	var err error
-	t.listener, err = tls.Listen("tcp", t.address, &t.config)
+	t.listener, err = tls.Listen("tcp", t.address, t.config)
 	if err != nil {
 		t.logger.Fatalf("Failed to start TCP listener. %s", err)
 	}
