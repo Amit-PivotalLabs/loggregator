@@ -9,10 +9,12 @@ import (
 	"metron/writers/dopplerforwarder"
 	"metron/writers/eventmarshaller"
 	"metron/writers/eventunmarshaller"
-	"metron/writers/legacyunmarshaller"
 	"metron/writers/messageaggregator"
 	"metron/writers/signer"
 	"metron/writers/tagger"
+
+	"metron/eventwriter"
+	"runtime"
 
 	"github.com/cloudfoundry/dropsonde/metric_sender"
 	"github.com/cloudfoundry/dropsonde/metricbatcher"
@@ -24,8 +26,6 @@ import (
 	"github.com/cloudfoundry/loggregatorlib/servicediscovery"
 	"github.com/cloudfoundry/storeadapter"
 	"github.com/cloudfoundry/storeadapter/etcdstoreadapter"
-	"metron/eventwriter"
-	"runtime"
 )
 
 var (
@@ -54,13 +54,6 @@ func main() {
 	dropsondeUnmarshaller := eventunmarshaller.New(aggregator, logger)
 	dropsondeReader := networkreader.New(fmt.Sprintf("localhost:%d", config.DropsondeIncomingMessagesPort), "dropsondeAgentListener", dropsondeUnmarshaller, logger)
 
-	// TODO: remove next four lines when legacy support is removed (or extracted to injector)
-	legacyMarshaller := eventmarshaller.New(byteSigner, logger)
-	legacyMessageTagger := tagger.New(config.Deployment, config.Job, config.Index, legacyMarshaller)
-	legacyUnmarshaller := legacyunmarshaller.New(legacyMessageTagger, logger)
-	legacyReader := networkreader.New(fmt.Sprintf("localhost:%d", config.LegacyIncomingMessagesPort), "legacyAgentListener", legacyUnmarshaller, logger)
-
-	go legacyReader.Start()
 	dropsondeReader.Start()
 }
 
@@ -126,7 +119,6 @@ type metronConfig struct {
 	Job        string
 	Index      uint
 
-	LegacyIncomingMessagesPort    int
 	DropsondeIncomingMessagesPort int
 
 	EtcdUrls                      []string

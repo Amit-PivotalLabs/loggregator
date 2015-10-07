@@ -53,23 +53,6 @@ var _ = Describe("Self Instrumentation", func() {
 		Eventually(testDoppler.MessageChan, 2).Should(Receive(MatchSpecifiedContents(&expected)))
 	})
 
-	It("counts legacy unmarshal errors", func() {
-		metronInput, _ := net.Dial("udp4", "localhost:51160")
-		metronInput.Write([]byte{1, 2, 3})
-
-		expected := events.Envelope{
-			Origin:    proto.String("MetronAgent"),
-			EventType: events.Envelope_CounterEvent.Enum(),
-			CounterEvent: &events.CounterEvent{
-				Name:  proto.String("legacyUnmarshaller.unmarshalErrors"),
-				Delta: proto.Uint64(1),
-				Total: proto.Uint64(1),
-			},
-		}
-
-		Eventually(testDoppler.MessageChan).Should(Receive(MatchSpecifiedContents(&expected)))
-	})
-
 	Describe("for Message Aggregator", func() {
 		var (
 			metronInput net.Conn
